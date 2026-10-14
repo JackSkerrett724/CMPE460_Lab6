@@ -242,13 +242,20 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 		TIMA0->COUNTERREGS.CC_23[channel-2] = (uint32_t) (load * (1-percentDutyCycle));
 
+		TIMA0->COUNTERREGS.CCCTL_23[channel-2] = GPTIMER_CCCTL_23_COC_COMPARE;
+
+		TIMA0->COUNTERREGS.CCACT_23[channel-2] = (GPTIMER_CCACT_23_LACT_CCP_HIGH |
+												GPTIMER_CCACT_23_CDACT_CCP_LOW);
+
+		TIMA0->COUNTERREGS.OCTL_23[channel-2] = (GPTIMER_OCTL_23_CCPO_FUNCVAL |
+											   GPTIMER_OCTL_23_CCPOINV_NOINV);
 
 		if(channel == 2)
 		{
 			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP2_OUTPUT;
 
 			TIMA0->COMMONREGS.ODIS = GPTIMER_ODIS_C0CCP2_CCP_OUTPUT_OCTL;
-			
+
 			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP0
 			IOMUX->SECCFG.PINCM[IOMUX_PINCM43] |= (	IOMUX_PINCM43_PF_GPIOB_DIO17 | 
 												IOMUX_PINCM_PC_CONNECTED);
@@ -271,6 +278,9 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 			// Set GPIOB DIO13 as output
 			GPIOB->DOESET31_0 |= GPIO_DOESET31_0_DIO13_SET;
 		}
+
+		// Enable timer
+		TIMA0->COUNTERREGS.CTRCTL = GPTIMER_CTRCTL_EN_ENABLED;
 	}
 
 
