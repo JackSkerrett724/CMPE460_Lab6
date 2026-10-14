@@ -96,6 +96,7 @@ void TIMG6_init(uint32_t period, uint32_t prescaler){
 
 	
 	//uint64_t load = (((32000000*period)/((prescaler+1)*(1000000)))-1);
+  // Convert period from microseconds to timer ticks
   uint32_t clk = SYSCTL_SYSCLK_getMCLK();
   uint32_t load = period*(clk/(1000*(prescaler+1))*(TIMG6->CLKDIV+1));
 	TIMG6->COUNTERREGS.LOAD = load;
@@ -167,8 +168,10 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 	
 	//uint64_t load = (((32000000*period)/((prescaler+1)*(1000000)))-1);
+
+	//convert to load assuming period is in microseconds
  	uint32_t clk = SYSCTL_SYSCLK_getMCLK();
-  	uint32_t load = period*(clk/(1000*(prescaler+1))*(TIMA0->CLKDIV+1));
+  	uint32_t load = period*(clk/(1000000*(prescaler+1))*(TIMA0->CLKDIV+1));
 	TIMA0->COUNTERREGS.LOAD = load;
 
 
