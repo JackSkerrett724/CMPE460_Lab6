@@ -65,7 +65,7 @@ void TIMG0_init(uint32_t period, uint32_t prescaler)
     // // Enable Zero event interrupt
     // TIMG0->CPU_INT.IMASK |= GPTIMER_CPU_INT_IMASK_Z_SET;
 
-    // TIMG0->COMMONREGS.CCLKCTL |= GPTIMER_CCLKCTL_CLKEN_ENABLED;
+    TIMG0->COMMONREGS.CCLKCTL |= GPTIMER_CCLKCTL_CLKEN_ENABLED;
 
 
     // Enable TIMG0 interrupt
@@ -106,7 +106,7 @@ void TIMG6_init(uint32_t period, uint32_t prescaler){
 	// TIMG6->CPU_INT.ICLR |= GPTIMER_CPU_INT_ICLR_Z_CLR;
 	// TIMG6->CPU_INT.IMASK |= GPTIMER_CPU_INT_IMASK_Z_SET;
   // TIMG6->COMMONREGS.CCLKCTL |= GPTIMER_CCLKCTL_CLKEN_ENABLED;
-	// TIMG6 ->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
+	 TIMG6 ->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
 	//NVIC_ClearPendingIRQ(TIMG6_INT_IRQn);
 	//NVIC_EnableIRQ(TIMG6_INT_IRQn);
 	//__enable_irq();
@@ -134,7 +134,7 @@ void TIMG12_init(uint32_t period){
 	//__disable_irq();
 	// TIMG12->CPU_INT.ICLR  |= GPTIMER_CPU_INT_ICLR_Z_CLR;
   // TIMG12->CPU_INT.IMASK |= GPTIMER_CPU_INT_IMASK_Z_SET;
-	// TIMG12->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
+	 TIMG12->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
 	
   	//NVIC_EnableIRQ(TIMG12_INT_IRQn);
 	//__enable_irq();
@@ -157,9 +157,9 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 	TIMA0->CLKSEL |= GPTIMER_CLKSEL_BUSCLK_SEL_ENABLE;
 	TIMA0->CLKDIV |= GPTIMER_CLKDIV_RATIO_DIV_BY_1; 
 	TIMA0->COMMONREGS.CPS |= prescaler;
-	//TIMG6->COMMONREGS.CCLKCTL |= GPTIMER_CCLKCTL_CLKEN_ENABLED; 
 
 
+	TIMA0->COMMONREGS.CCLKCTL |= 1;
 	TIMA0->COUNTERREGS.CTRCTL = GPTIMER_CTRCTL_EN_DISABLED; 
 	
 	TIMA0->COUNTERREGS.CTRCTL &= ~GPTIMER_CTRCTL_CM_MASK;
@@ -177,7 +177,7 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 
 
-	if(channel == 0 | channel == 1)
+	if(channel == 0 || channel == 1)
 	{
 		
 
@@ -185,32 +185,27 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 		TIMA0->COUNTERREGS.CC_01[channel] = (uint32_t) (load * (1-percentDutyCycle));
 
 		//Set compare mode
-		TIMA0->COUNTERREGS.CCCTL_01[channel] = GPTIMER_CCCTL_01_COC_COMPARE;
+		TIMA0->COUNTERREGS.CCCTL_01[channel] |= GPTIMER_CCCTL_01_COC_COMPARE;
 
 
 		//Action on Load - high, Action on Compare - low
-		TIMA0->COUNTERREGS.CCACT_01[channel] = (GPTIMER_CCACT_01_LACT_CCP_HIGH |
-												GPTIMER_CCACT_01_CDACT_CCP_LOW);
+		TIMA0->COUNTERREGS.CCACT_01[channel] |= (GPTIMER_CCACT_01_LACT_CCP_HIGH | GPTIMER_CCACT_01_CDACT_CCP_LOW );
 
 		//Set output mode to for singal generator output
 		TIMA0->COUNTERREGS.OCTL_01[channel] = (GPTIMER_OCTL_01_CCPO_FUNCVAL |
-											   GPTIMER_OCTL_01_CCPOINV_NOINV);
+											   GPTIMER_OCTL_01_CCPOINV_NOINV |
+												 GPTIMER_OCTL_01_CCPIV_LOW);
 							
 		
 
 		if(channel == 0)
 		{
+			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP0
+			IOMUX->SECCFG.PINCM[IOMUX_PINCM25] |= (	IOMUX_PINCM25_PF_TIMA0_CCP0 | 
+												IOMUX_PINCM_PC_CONNECTED);
+			
 			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP0_OUTPUT;
 
-			TIMA0->COMMONREGS.ODIS = GPTIMER_ODIS_C0CCP0_CCP_OUTPUT_OCTL;
-
-			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP0
-			IOMUX->SECCFG.PINCM[IOMUX_PINCM25] |= (	IOMUX_PINCM25_PF_GPIOB_DIO08 | 
-												IOMUX_PINCM_PC_CONNECTED);
-  
-
-			// Set GPIOB DIO8 as output
-			GPIOB->DOESET31_0 |= GPIO_DOESET31_0_DIO8_SET;
 		}
 
 
@@ -219,73 +214,58 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 		else if(channel == 1)
 		{
-
-			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP1_OUTPUT;
-
-			TIMA0->COMMONREGS.ODIS = GPTIMER_ODIS_C0CCP1_CCP_OUTPUT_OCTL;
-
 			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP1
-			IOMUX->SECCFG.PINCM[IOMUX_PINCM29] |= (	IOMUX_PINCM29_PF_GPIOB_DIO12 | 
+			IOMUX->SECCFG.PINCM[IOMUX_PINCM29] |= (	IOMUX_PINCM29_PF_TIMA0_CCP1 | 
 												IOMUX_PINCM_PC_CONNECTED);
   
-
-			// Set GPIOB DIO12 as output
-			GPIOB->DOESET31_0 |= GPIO_DOESET31_0_DIO12_SET;
+			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP1_OUTPUT;
 		}
-	
-				// Enable timer
-		TIMA0->COUNTERREGS.CTRCTL = GPTIMER_CTRCTL_EN_ENABLED;
+
 
 	}
 
-	else if(channel == 2 | channel == 3)
+	else if(channel == 2 || channel == 3)
 	{
 
+		TIMA0->COUNTERREGS.CC_23[channel - 2] = (uint32_t) (load * (1-percentDutyCycle));
+
+		//Set compare mode
+		TIMA0->COUNTERREGS.CCCTL_23[channel - 2] |= GPTIMER_CCCTL_23_COC_COMPARE;
 
 
-		TIMA0->COUNTERREGS.CC_23[channel-2] = (uint32_t) (load * (1-percentDutyCycle));
+		//Action on Load - high, Action on Compare - low
+		TIMA0->COUNTERREGS.CCACT_23[channel - 2] |= (GPTIMER_CCACT_23_LACT_CCP_HIGH | GPTIMER_CCACT_23_CDACT_CCP_LOW );
 
-		TIMA0->COUNTERREGS.CCCTL_23[channel-2] = GPTIMER_CCCTL_23_COC_COMPARE;
-
-		TIMA0->COUNTERREGS.CCACT_23[channel-2] = (GPTIMER_CCACT_23_LACT_CCP_HIGH |
-												GPTIMER_CCACT_23_CDACT_CCP_LOW);
-
-		TIMA0->COUNTERREGS.OCTL_23[channel-2] = (GPTIMER_OCTL_23_CCPO_FUNCVAL |
-											   GPTIMER_OCTL_23_CCPOINV_NOINV);
+		//Set output mode to for singal generator output
+		TIMA0->COUNTERREGS.OCTL_23[channel - 2] = (GPTIMER_OCTL_23_CCPO_FUNCVAL |
+											   GPTIMER_OCTL_23_CCPOINV_NOINV |
+												 GPTIMER_OCTL_23_CCPIV_LOW);
 
 		if(channel == 2)
 		{
+			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP2
+			IOMUX->SECCFG.PINCM[IOMUX_PINCM43] |= (	IOMUX_PINCM43_PF_TIMA0_CCP2 | 
+												IOMUX_PINCM_PC_CONNECTED);
+			
 			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP2_OUTPUT;
 
-			TIMA0->COMMONREGS.ODIS = GPTIMER_ODIS_C0CCP2_CCP_OUTPUT_OCTL;
-
-			// Set IOMUX for GPIOB DIO12 to be connected to TIMA0 CCP0
-			IOMUX->SECCFG.PINCM[IOMUX_PINCM43] |= (	IOMUX_PINCM43_PF_GPIOB_DIO17 | 
-												IOMUX_PINCM_PC_CONNECTED);
-  
-
-			// Set GPIOB DIO17 as output
-			GPIOB->DOESET31_0 |= GPIO_DOESET31_0_DIO17_SET;
 		}
 
 
 
 		else if(channel == 3)
 		{
-
 			// Set IOMUX for GPIOB DIO13 to be connected to TIMA0 CCP1
-			IOMUX->SECCFG.PINCM[IOMUX_PINCM30] |= (	IOMUX_PINCM30_PF_GPIOB_DIO13 | 
+			IOMUX->SECCFG.PINCM[IOMUX_PINCM30] |= (	IOMUX_PINCM30_PF_TIMA0_CCP3 | 
 												IOMUX_PINCM_PC_CONNECTED);
-  
 
-			// Set GPIOB DIO13 as output
-			GPIOB->DOESET31_0 |= GPIO_DOESET31_0_DIO13_SET;
+			TIMA0->COMMONREGS.CCPD |= GPTIMER_CCPD_C0CCP3_OUTPUT;
 		}
 
-		// Enable timer
-		TIMA0->COUNTERREGS.CTRCTL = GPTIMER_CTRCTL_EN_ENABLED;
-	}
 
+	}
+			// Enable timer
+		TIMA0->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
 
 }
 
@@ -302,7 +282,17 @@ void TIMA1_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 void TIMA0_PWM_DutyCycle(uint8_t channel, double percentDutyCycle)
 {
+    uint32_t load = TIMA0->COUNTERREGS.LOAD;
+    uint32_t compareVal = (uint32_t)(load * (1.0 - percentDutyCycle));
 
+    if (channel == 0 || channel == 1)
+    {
+        TIMA0->COUNTERREGS.CC_01[channel] = compareVal;
+    }
+    else if (channel == 2 || channel == 3)
+    {
+        TIMA0->COUNTERREGS.CC_23[channel - 2] = compareVal;
+    }
 }
 
 
