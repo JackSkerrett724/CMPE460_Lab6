@@ -28,51 +28,51 @@ void delay_ms(uint32_t ms)
 //*****************************************
 //*****************PART 1******************
 //*****************************************
-// int main(void)
-// {
-//     // Initialize both PWM channels:
-//     // 100 us period = nominally 10 kHz
-//     TIMA0_PWM_init(0, 100, 0, 0.0);
-//     TIMA0_PWM_init(1, 100, 0, 0.0);
+int main(void)
+{
+    // Initialize both PWM channels:
+    // 100 us period = nominally 10 kHz
+    TIMA0_PWM_init(0, 100, 0, 0.0);
+    TIMA0_PWM_init(1, 100, 0, 0.0);
 
-//     while (1)
-//     {
-//         // Forward: 0% -> 100%
-//         TIMA0_PWM_DutyCycle(1, 0.0); //make sure the other channel is off before starting the first channel
+    while (1)
+    {
+        // Forward: 0% -> 100%
+        TIMA0_PWM_DutyCycle(1, 0.0); //make sure the other channel is off before starting the first channel
 
-//         for (int d = 0; d <= 100; d++) 
-//         {
-//             TIMA0_PWM_DutyCycle(0, d / 100.0);
-//             delay_ms(10);
-//         }
+        for (int d = 0; d <= 100; d++) 
+        {
+            TIMA0_PWM_DutyCycle(0, d / 100.0);
+            delay_ms(10);
+        }
 
-//         // Forward: 100% -> 0%
-//         for (int d = 100; d >= 0; d--) {
-//             TIMA0_PWM_DutyCycle(0, d / 100.0);
-//             delay_ms(10);
-//         }
+        // Forward: 100% -> 0%
+        for (int d = 100; d >= 0; d--) {
+            TIMA0_PWM_DutyCycle(0, d / 100.0);
+            delay_ms(10);
+        }
 
-//         TIMA0_PWM_DutyCycle(0, 0.0);//make sure the other channel is off before starting the next channel
-//         delay_ms(10);
+        TIMA0_PWM_DutyCycle(0, 0.0);//make sure the other channel is off before starting the next channel
+        delay_ms(10);
 
-//         // Reverse: 0% -> 100%
-//         TIMA0_PWM_DutyCycle(1, 0.0); 
+        // Reverse: 0% -> 100%
+        TIMA0_PWM_DutyCycle(1, 0.0); 
 
-//         for (int d = 0; d <= 100; d++) {
-//             TIMA0_PWM_DutyCycle(1, d / 100.0);
-//             delay_ms(10);
-//         }
+        for (int d = 0; d <= 100; d++) {
+            TIMA0_PWM_DutyCycle(1, d / 100.0);
+            delay_ms(10);
+        }
 
-//         // Reverse: 100% -> 0%
-//         for (int d = 100; d >= 0; d--) {
-//             TIMA0_PWM_DutyCycle(1, d / 100.0);
-//             delay_ms(10);
-//         }
+        // Reverse: 100% -> 0%
+        for (int d = 100; d >= 0; d--) {
+            TIMA0_PWM_DutyCycle(1, d / 100.0);
+            delay_ms(10);
+        }
 
-//         TIMA0_PWM_DutyCycle(1, 0.0);
-//         delay_ms(10);
-//     }
-// }
+        TIMA0_PWM_DutyCycle(1, 0.0);
+        delay_ms(10);
+    }
+}
 
 //**********************************************
 //**************PART 2**************************
@@ -170,16 +170,16 @@ void delay_ms(uint32_t ms)
 //***************PART 4**************************
 //***********************************************
 
-int main(void)
-{
-    // DC motor ; 100 us period = 10 kHz ; 30% duty cycle
-    TIMA0_PWM_init(0, 100, 0, 0.30);
+// int main(void)
+// {
+//     // DC motor ; 100 us period = 10 kHz ; 30% duty cycle
+//     TIMA0_PWM_init(0, 100, 0, 0.30);
 
-    // Servo ; 20,000 us period = 50 Hz ; 1.5 ms pulse = 7.5% duty cycle
-    TIMA1_PWM_init(0, 20000, 0, 0.075);
+//     // Servo ; 20,000 us period = 50 Hz ; 1.5 ms pulse = 7.5% duty cycle
+//     TIMA1_PWM_init(0, 20000, 0, 0.075);
 
-    while (1)
-    {
-        //shouldnt need anything here as the hardware does all the works
-    }
-}
+//     while (1)
+//     {
+//         //shouldnt need anything here as the hardware does all the works
+//     }
+// }
