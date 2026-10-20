@@ -154,13 +154,32 @@ void delay_ms(uint32_t ms)
 //***************PART 3**************************
 //***********************************************
 
+// int main(void)
+// {
+//     // Channel 0, 20 ms period (50 Hz), 1.5 ms pulse (7.5%)
+//     TIMA1_PWM_init(0, 20000, 0, 0.075);
+
+//     while (1)
+//     {
+//         //shouldnt need anything here as the hardware does all the works
+//     }
+// }
+
+
+//***********************************************
+//***************PART 4**************************
+//***********************************************
+
 int main(void)
 {
-    // Channel 0, 20 ms period (50 Hz), 1.5 ms pulse (7.5%)
+    // DC motor ; 100 us period = 10 kHz ; 30% duty cycle
+    TIMA0_PWM_init(0, 100, 0, 0.30);
+
+    // Servo ; 20,000 us period = 50 Hz ; 1.5 ms pulse = 7.5% duty cycle
     TIMA1_PWM_init(0, 20000, 0, 0.075);
 
     while (1)
     {
-        // TIMA1 generates the PWM continuously in hardware.
+        //shouldnt need anything here as the hardware does all the works
     }
 }
