@@ -274,7 +274,53 @@ void TIMA0_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double
 
 void TIMA1_PWM_init(uint8_t channel, uint32_t period, uint32_t prescaler, double percentDutyCycle)
 {
+    if (!(TIMA1->GPRCM.PWREN & GPTIMER_PWREN_ENABLE_MASK))
+    {
+        TIMA1->GPRCM.RSTCTL |= (GPTIMER_RSTCTL_KEY_UNLOCK_W | GPTIMER_RSTCTL_RESETASSERT_ASSERT | GPTIMER_RSTCTL_RESETSTKYCLR_CLR);
 
+        TIMA1->GPRCM.PWREN |= (GPTIMER_PWREN_KEY_UNLOCK_W |  GPTIMER_PWREN_ENABLE_ENABLE);
+    }
+
+    TIMA1->CLKSEL |= GPTIMER_CLKSEL_BUSCLK_SEL_ENABLE;
+    TIMA1->CLKDIV |= GPTIMER_CLKDIV_RATIO_DIV_BY_1;
+    TIMA1->COMMONREGS.CPS |= prescaler;
+
+    TIMA1->COMMONREGS.CCLKCTL |= GPTIMER_CCLKCTL_CLKEN_ENABLED;
+    TIMA1->COUNTERREGS.CTRCTL = GPTIMER_CTRCTL_EN_DISABLED;
+
+    TIMA1->COUNTERREGS.CTRCTL &= ~GPTIMER_CTRCTL_CM_MASK;
+    TIMA1->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_REPEAT_REPEAT_1;
+    TIMA1->COUNTERREGS.CTRCTL &= ~GPTIMER_CTRCTL_CVAE_MASK;
+
+    uint32_t clk = SYSCTL_SYSCLK_getMCLK();
+	// Microseconds to timer ticks conversion
+    uint32_t load = period * (clk / (1000000 * (prescaler + 1)) * (TIMA1->CLKDIV + 1));
+
+    TIMA1->COUNTERREGS.LOAD = load;
+
+    if (channel == 0)
+    {
+        TIMA1->COUNTERREGS.CC_01[channel] = (uint32_t)(load * (1.0 - percentDutyCycle));
+
+        TIMA1->COUNTERREGS.CCCTL_01[channel] |= GPTIMER_CCCTL_01_COC_COMPARE;
+
+        TIMA1->COUNTERREGS.CCACT_01[channel] |= (GPTIMER_CCACT_01_LACT_CCP_HIGH |
+            							   GPTIMER_CCACT_01_CDACT_CCP_LOW);
+
+        TIMA1->COUNTERREGS.OCTL_01[0] =
+            (GPTIMER_OCTL_01_CCPO_FUNCVAL |
+             GPTIMER_OCTL_01_CCPOINV_NOINV |
+             GPTIMER_OCTL_01_CCPIV_LOW);
+
+        // Configure PB4 as TIMA1 CCP0 output
+		IOMUX->SECCFG.PINCM[IOMUX_PINCM17] = (IOMUX_PINCM17_PF_TIMA1_CCP0 |
+    										  IOMUX_PINCM_PC_CONNECTED);
+
+        TIMA1->COMMONREGS.CCPD |=
+            GPTIMER_CCPD_C0CCP0_OUTPUT;
+    }
+
+    TIMA1->COUNTERREGS.CTRCTL |= GPTIMER_CTRCTL_EN_ENABLED;
 }
 
 
@@ -299,5 +345,12 @@ void TIMA0_PWM_DutyCycle(uint8_t channel, double percentDutyCycle)
 
 void TIMA1_PWM_DutyCycle(uint8_t channel, double percentDutyCycle)
 {
-  
+    uint32_t load = TIMA1->COUNTERREGS.LOAD;
+
+    uint32_t compareVal = (uint32_t)(load * (1.0 - percentDutyCycle));
+
+    if (channel == 0)
+    {
+        TIMA1->COUNTERREGS.CC_01[0] = compareVal;
+    }
 }
