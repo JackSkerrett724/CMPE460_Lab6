@@ -351,6 +351,6 @@ void TIMA1_PWM_DutyCycle(uint8_t channel, double percentDutyCycle)
 
     if (channel == 0)
     {
-        TIMA1->COUNTERREGS.CC_01[0] = compareVal;
+        TIMA1->COUNTERREGS.CC_01[channel] = compareVal;
     }
 }
